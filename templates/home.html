@@ -1,0 +1,189 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <style>
+        /* Apply styles to the entire body */
+        body {
+            font-family: Helvetica, sans-serif; /* Use Helvetica font */
+            background-color: #f8f8f8; /* Set background color */
+            margin: 0; /* Remove default margin */
+            padding: 0; /* Remove default padding */
+        }
+
+        /* Apply styles to the blue banner */
+        .banner {
+            background-color: #005d87; /* Blue color */
+            padding: 10px; /* Add padding */
+            border-radius: 10px; /* Add border radius */
+            margin: 20px auto; /* Center banner horizontally and add margin */
+            max-width: 80%; /* Set maximum width to 80% of the viewport */
+        }
+
+        /* Apply styles to the logo container */
+        .logo-container {
+            display: flex; /* Use flexbox layout */
+            align-items: center; /* Center vertically */
+        }
+
+        /* Apply styles to the logo */
+        .logo {
+            max-width: 100px; /* Adjust logo width as needed */
+            height: auto; /* Maintain aspect ratio */
+            margin-right: 10px; /* Add margin to separate logo from brand name */
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-icon {
+            margin-right: 40px;
+        }
+
+        /* Apply styles to the brand name */
+        .brand-name {
+            color: white; /* White text color */
+            font-size: 30px; /* Adjust font size as needed */
+        }
+
+        /* Center the search box */
+        .search-container {
+            display: flex; /* Use flexbox layout */
+            justify-content: space-between; /* Distribute items evenly */
+            align-items: center; /* Center items vertically */
+            margin: 20px auto; /* Center container horizontally and add margin */
+            max-width: 80%; /* Set maximum width to 80% of the viewport */
+            background-color: white; /* White background color for search container */
+            padding: 20px; /* Add padding */
+            border-radius: 10px; /* Add border radius */
+        }
+
+        /* Apply styles to the search box input */
+        .search-box {
+            width: calc(100% - 150px); /* Set width to 100% minus button width and padding */
+            padding: 10px; /* Add padding */
+            border: 1px solid #ccc; /* Add border */
+            border-radius: 5px; /* Add border radius */
+            font-size: 16px; /* Set font size */
+            margin-right: 10px; /* Add margin between input and button */
+        }
+
+        /* Apply styles to the search button */
+        .search-button {
+            padding: 10px 20px; /* Add padding */
+            background-color: #005d87; /* Green color */
+            color: white; /* White text color */
+            border: none; /* Remove border */
+            border-radius: 5px; /* Add border radius */
+            cursor: pointer; /* Add cursor pointer */
+            font-size: 16px; /* Set font size */
+        }
+
+        /* Apply styles to the generate button */
+        .generate-button {
+            padding: 10px 20px; /* Add padding */
+            background-color: #005d87; /* Green color */
+            color: white; /* White text color */
+            border: none; /* Remove border */
+            border-radius: 5px; /* Add border radius */
+            cursor: pointer; /* Add cursor pointer */
+            font-size: 16px; /* Set font size */
+        }
+
+        /* Apply styles to the search results */
+        .search-results {
+            margin-top: 20px; /* Add margin from the search container */
+            max-width: 80%; /* Set maximum width to match the search container */
+            margin-left: auto; /* Align search results to the right */
+            margin-right: auto; /* Align search results to the left */
+            background-color: #fff; /* White background color */
+            padding: 20px; /* Add padding */
+            border-radius: 10px; /* Add border radius */
+        }
+
+        /* Apply styles to the search result items */
+        .search-result {
+            margin-bottom: 10px; /* Add margin between search result items */
+        }
+
+        /* Apply styles to the search result user details */
+        .user-details {
+            font-size: 18px; /* Set font size */
+            font-weight: bold; /* Set font weight */
+        }
+    </style>
+</head>
+<body>
+
+<!-- Blue banner with branded logo -->
+<div class="banner">
+    <div class="logo-container">
+        <img src="{% static 'admin/img/FLogoWhite.png' %}" alt="Branded Logo" class="logo">
+        <span class="brand-name">Flagler Schools</span>
+    </div>
+</div>
+
+<!-- Search box container -->
+<div class="search-container">
+    <input type="text" placeholder="Search..." class="search-box" id="search-input">
+    <button type="button" class="search-button" onclick="searchUsers()">Search</button>
+</div>
+
+<!-- Search results container -->
+<div class="search-results" id="search-results-container">
+    <!-- Search results will be displayed here -->
+</div>
+
+<script>
+let isGeneratingPassword = false; // Define the variable at the start of the script
+
+// Function to generate and change the password when "Generate" button is clicked
+function generateAndChangePassword(username, user_dn) {
+    if (isGeneratingPassword) return; // Prevent multiple requests
+
+    isGeneratingPassword = true;
+
+    fetch(`/generate_and_change_password/${username}/${encodeURIComponent(user_dn)}/`)
+        .then(response => response.json())
+        .then(data => {
+            console.log("Response data:", data); // Log the response to check structure
+            if (data.success) {
+                // Update the password field with the generated password
+                document.getElementById(`generated-password-${username}`).innerText = data.generated_password;
+                alert(data.message);  // Confirm success with an alert
+            } else {
+                alert("Error: " + data.error);
+            }
+        })
+        .catch(error => console.error("Error:", error))
+        .finally(() => {
+            isGeneratingPassword = false;
+        });
+}
+
+// Function to update search results container
+function updateSearchResults(html_content) {
+    var resultsContainer = document.getElementById('search-results-container');
+    resultsContainer.innerHTML = html_content;
+}
+
+// Function to handle search request
+function searchUsers() {
+    var query = document.getElementById('search-input').value;
+
+    fetch(`/search/${encodeURIComponent(query)}`)
+        .then(response => response.text())
+        .then(html_content => {
+            updateSearchResults(html_content);
+        })
+        .catch(error => console.error('Error:', error));
+}
+</script>
+
+</body>
+</html>
